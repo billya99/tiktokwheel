@@ -187,7 +187,7 @@
   </div>
 
   <div id="confetti" class="confetti"></div>
-  <button class="test-button" onclick="triggerFollowSpin()">TEST FOLLOW SPIN</button>
+  
 
   <script>
     const rewards = [
@@ -272,12 +272,12 @@
     // AUTO SPIN MODE
     // Spins automatically every 20-45 seconds
     // Remove this section if you only want manual triggers.
-    function autoSpinLoop() {
-      const randomDelay = Math.floor(Math.random() * 25000) + 20000;
-
+    // START SPIN IMMEDIATELY WHEN PAGE LOADS
+    window.addEventListener("load", () => {
       setTimeout(() => {
         triggerFollowSpin();
-        autoSpinLoop();
+      }, 500);
+    });
       }, randomDelay);
     }
 
