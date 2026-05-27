@@ -187,7 +187,7 @@
   </div>
 
   <div id="confetti" class="confetti"></div>
-  
+  <button class="test-button" onclick="triggerFollowSpin()">TEST FOLLOW SPIN</button>
 
   <script>
     const rewards = [
@@ -257,10 +257,6 @@
       }, 9000);
     }
 
-    // Trigger options for follow tools:
-    // 1) Browser console / OBS custom JS: triggerFollowSpin("username")
-    // 2) URL message event: window.postMessage({ type: "follow", username: "viewer" }, "*")
-    // 3) Some TikTok tools can call this function directly when a follow happens.
     window.addEventListener("message", (event) => {
       if (event.data && event.data.type === "follow") {
         triggerFollowSpin(event.data.username || "new follower");
@@ -269,19 +265,9 @@
 
     window.triggerFollowSpin = triggerFollowSpin;
 
-    // AUTO SPIN MODE
-    // Spins automatically every 20-45 seconds
-    // Remove this section if you only want manual triggers.
-    // START SPIN IMMEDIATELY WHEN PAGE LOADS
-    window.addEventListener("load", () => {
-      setTimeout(() => {
-        triggerFollowSpin();
-      }, 500);
-    });
-      }, randomDelay);
-    }
-
-    autoSpinLoop();
+    // Auto spin every 10 seconds.
+    setTimeout(triggerFollowSpin, 500);
+    setInterval(triggerFollowSpin, 10000);
   </script>
 </body>
 </html>
