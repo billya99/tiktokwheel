@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikTok Follow Spin Wheel Overlay</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: Impact, Haettenschweiler, 'Arial Black', sans-serif;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .wheel-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      transform: scale(0);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(.2,1.4,.4,1), opacity 0.25s ease;
+      filter: drop-shadow(0 14px 22px rgba(0,0,0,.55));
+    }
+
+    .wheel-card.show {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .text-block {
+      text-align: center;
+      text-transform: uppercase;
+      color: #fff;
+      -webkit-text-stroke: 4px #071633;
+      text-shadow: 0 5px 0 #071633, 0 0 18px #00f5ff, 0 0 28px #ff2bd6;
+    }
+
+    .title {
+      font-size: 58px;
+      line-height: 0.9;
+    }
+
+    .result {
+      margin-top: 14px;
+      padding: 10px 20px;
+      min-width: 330px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #ffe600, #ff4bd8);
+      border: 5px solid #071633;
+      color: #fff;
+      font-size: 42px;
+      letter-spacing: 1px;
+      -webkit-text-stroke: 2px #071633;
+      transform: rotate(-2deg);
+    }
+
+    .wheel-wrap {
+      position: relative;
+      width: 360px;
+      height: 360px;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 26px solid transparent;
+      border-right: 26px solid transparent;
+      border-top: 54px solid #ff1744;
+      z-index: 5;
+      filter: drop-shadow(0 6px 0 #8f001f);
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 12px solid #ffd700;
+      box-shadow: inset 0 0 0 8px #7a3cff, 0 0 28px #ffd700;
+      background: conic-gradient(
+        #ff0055 0deg 45deg,
+        #00d4ff 45deg 90deg,
+        #ffdf00 90deg 135deg,
+        #8dff00 135deg 180deg,
+        #ff7a00 180deg 225deg,
+        #b700ff 225deg 270deg,
+        #00ffb3 270deg 315deg,
+        #ff3bd4 315deg 360deg
+      );
+      transition: transform 5.2s cubic-bezier(.08,.85,.13,1);
+      position: relative;
+    }
+
+    .wheel::after {
+      content: "";
+      position: absolute;
+      inset: 50%;
+      width: 72px;
+      height: 72px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff4a3, #ffb700);
+      border: 7px solid #7a3cff;
+      box-shadow: 0 0 16px #fff;
+    }
+
+    .label {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 110px;
+      margin-left: -55px;
+      margin-top: -18px;
+      text-align: center;
+      color: white;
+      font-family: Arial Black, Impact, sans-serif;
+      font-size: 16px;
+      line-height: 1;
+      text-shadow: 2px 2px 0 #071633, -2px 2px 0 #071633, 2px -2px 0 #071633, -2px -2px 0 #071633;
+      transform-origin: 55px 18px;
+    }
+
+    .confetti {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .piece {
+      position: absolute;
+      width: 12px;
+      height: 20px;
+      animation: fall 900ms ease-out forwards;
+      opacity: 0.95;
+    }
+
+    @keyframes fall {
+      from { transform: translateY(-40px) rotate(0deg); opacity: 1; }
+      to { transform: translateY(620px) rotate(540deg); opacity: 0; }
+    }
+
+    .test-button {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      pointer-events: auto;
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      background: #fff;
+      color: #111;
+      box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div id="wheelCard" class="wheel-card">
+      <div class="text-block">
+        <div class="title">New Follow!</div>
+        <div id="result" class="result">SPINNING...</div>
+      </div>
+
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+        <div id="wheel" class="wheel"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="confetti" class="confetti"></div>
+  <button class="test-button" onclick="triggerFollowSpin()">TEST FOLLOW SPIN</button>
+
+  <script>
+    const rewards = [
+      "Do 5 Push Ups",
+      "Say Their Name",
+      "Dance Move",
+      "Funny Voice",
+      "Wear A Hat",
+      "Shoutout",
+      "Sing 5 Secs",
+      "Hydrate"
+    ];
+
+    const wheel = document.getElementById("wheel");
+    const wheelCard = document.getElementById("wheelCard");
+    const result = document.getElementById("result");
+    const confetti = document.getElementById("confetti");
+
+    let currentRotation = 0;
+    let spinning = false;
+
+    rewards.forEach((reward, index) => {
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = reward;
+      label.style.transform = `rotate(${index * 45 + 22.5}deg) translateY(-122px) rotate(90deg)`;
+      wheel.appendChild(label);
+    });
+
+    function burstConfetti() {
+      const colors = ["#ff0055", "#00d4ff", "#ffdf00", "#8dff00", "#b700ff", "#ff7a00"];
+      for (let i = 0; i < 60; i++) {
+        const piece = document.createElement("div");
+        piece.className = "piece";
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.top = Math.random() * 20 + "vh";
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 250 + "ms";
+        confetti.appendChild(piece);
+        setTimeout(() => piece.remove(), 1400);
+      }
+    }
+
+    function triggerFollowSpin(username = "new follower") {
+      if (spinning) return;
+      spinning = true;
+
+      const chosenIndex = Math.floor(Math.random() * rewards.length);
+      const slice = 360 / rewards.length;
+      const landingAngle = 360 - (chosenIndex * slice + slice / 2);
+      const extraSpins = 6 * 360;
+
+      currentRotation += extraSpins + landingAngle;
+
+      result.textContent = "SPINNING...";
+      wheelCard.classList.add("show");
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+      setTimeout(() => {
+        result.textContent = rewards[chosenIndex];
+        burstConfetti();
+      }, 5300);
+
+      setTimeout(() => {
+        wheelCard.classList.remove("show");
+        spinning = false;
+      }, 9000);
+    }
+
+    // Trigger options for follow tools:
+    // 1) Browser console / OBS custom JS: triggerFollowSpin("username")
+    // 2) URL message event: window.postMessage({ type: "follow", username: "viewer" }, "*")
+    // 3) Some TikTok tools can call this function directly when a follow happens.
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.type === "follow") {
+        triggerFollowSpin(event.data.username || "new follower");
+      }
+    });
+
+    window.triggerFollowSpin = triggerFollowSpin;
+  </script>
+</body>
+</html>
